@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo Script Generator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sap-blue: #0070F2;
+      --sap-blue-dark: #0050B0;
+      --bg: #F4F6F8;
+      --card: #FFFFFF;
+      --border: #D9DCE0;
+      --text: #1A1A2E;
+      --muted: #6B7280;
+      --success: #16A34A;
+      --error: #DC2626;
+    }
+
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    header {
+      background: var(--sap-blue); color: white; padding: 0 2rem; height: 56px;
+      display: flex; align-items: center; gap: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100;
+    }
+    header .logo {
+      width: 32px; height: 32px; background: white; border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; color: var(--sap-blue); font-size: 14px; flex-shrink: 0;
+    }
+    header h1 { font-size: 1.1rem; font-weight: 600; }
+    header .badge {
+      margin-left: auto; background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.35); border-radius: 20px;
+      padding: 2px 12px; font-size: 0.75rem; font-weight: 500;
+    }
+
+    main { max-width: 760px; margin: 2rem auto; padding: 0 1.5rem; display: grid; gap: 1.5rem; }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.75rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .card-title {
+      font-size: 1rem; font-weight: 600; margin-bottom: 1.25rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .card-title .icon {
+      width: 28px; height: 28px; background: #EEF4FF; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center; font-size: 15px;
+    }
+
+    .form-fields { display: grid; gap: 1.1rem; }
+
+    label {
+      display: block; font-size: 0.78rem; font-weight: 600; color: var(--muted);
+      margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+
+    input[type="text"], textarea, select {
+      width: 100%; padding: 0.65rem 0.9rem; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 0.925rem; font-family: inherit;
+      color: var(--text); background: white;
+      transition: border-color 0.15s, box-shadow 0.15s; outline: none;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--sap-blue); box-shadow: 0 0 0 3px rgba(0,112,242,0.12);
+    }
+    textarea { resize: vertical; min-height: 90px; }
+
+    .upload-area {
+      border: 2px dashed var(--border); border-radius: 10px; padding: 2rem 1.5rem;
+      text-align: center; cursor: pointer; transition: all 0.15s; position: relative;
+    }
+    .upload-area:hover, .upload-area.drag-over { border-color: var(--sap-blue); background: #F0F7FF; }
+    .upload-area input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-icon { font-size: 2.2rem; margin-bottom: 0.5rem; }
+    .upload-area p { font-size: 0.88rem; color: var(--muted); margin-top: 2px; }
+    .upload-area strong { color: var(--sap-blue); }
+    .file-name { margin-top: 0.6rem; font-size: 0.85rem; color: var(--success); font-weight: 500; }
+
+    .templates-row { display: flex; gap: 0.75rem; align-items: flex-end; }
+    .templates-row > div:first-child { flex: 1; }
+    .sync-status { font-size: 0.78rem; margin-top: 5px; min-height: 1.1em; }
+    .sync-status.ok { color: var(--success); }
+    .sync-status.err { color: var(--error); }
+
+    .submit-row { display: flex; justify-content: flex-end; margin-top: 0.5rem; }
+
+    button {
+      padding: 0.65rem 1.5rem; border: none; border-radius: 8px;
+      font-size: 0.92rem; font-weight: 600; cursor: pointer;
+      transition: all 0.15s; font-family: inherit;
+      display: inline-flex; align-items: center; gap: 0.45rem;
+    }
+    .btn-primary { background: var(--sap-blue); color: white; }
+    .btn-primary:hover { background: var(--sap-blue-dark); }
+    .btn-primary:disabled { background: #93C5FD; cursor: not-allowed; }
+    .btn-secondary { background: white; color: var(--text); border: 1px solid var(--border); font-size: 0.85rem; padding: 0.55rem 1rem; }
+    .btn-secondary:hover { background: var(--bg); }
+
+    /* Progress */
+    .progress-card { display: none; }
+    .progress-card.visible { display: block; }
+
+    .steps-indicator { display: flex; margin-bottom: 1rem; }
+    .step-pill {
+      flex: 1; text-align: center; font-size: 0.7rem; font-weight: 600;
+      padding: 5px 0; background: #E5E7EB; color: var(--muted);
+      border-right: 2px solid white;
+    }
+    .step-pill:first-child { border-radius: 6px 0 0 6px; }
+    .step-pill:last-child { border-radius: 0 6px 6px 0; border-right: none; }
+    .step-pill.active { background: var(--sap-blue); color: white; }
+    .step-pill.done-step { background: #BBF7D0; color: #15803D; }
+
+    .log-terminal {
+      background: #0F1117; color: #E2E8F0;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.8rem; line-height: 1.65; padding: 1rem 1.25rem;
+      border-radius: 8px; height: 260px; overflow-y: auto;
+      white-space: pre-wrap; word-break: break-all;
+    }
+    .log-line.info { color: #E2E8F0; }
+    .log-line.warn { color: #FBBF24; }
+    .log-line.error { color: #F87171; }
+    .log-line.done { color: #4ADE80; }
+
+    .progress-bar-wrap { background: #E5E7EB; border-radius: 99px; height: 6px; margin-top: 1rem; overflow: hidden; }
+    .progress-bar { height: 100%; background: var(--sap-blue); border-radius: 99px; width: 0%; transition: width 0.4s ease; }
+
+    /* Download */
+    .download-card { display: none; }
+    .download-card.visible { display: block; }
+    .download-box {
+      background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 10px;
+      padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1rem;
+    }
+    .dl-icon { font-size: 2rem; flex-shrink: 0; }
+    .dl-info { flex: 1; }
+    .dl-info strong { display: block; font-size: 0.95rem; color: var(--success); }
+    .dl-info span { font-size: 0.82rem; color: var(--muted); }
+    .btn-download {
+      background: var(--success); color: white; padding: 0.6rem 1.2rem;
+      border-radius: 8px; font-weight: 600; text-decoration: none;
+      font-size: 0.88rem; display: inline-flex; align-items: center; gap: 0.4rem;
+    }
+    .btn-download:hover { background: #15803D; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">SAP</div>
+  <h1>Demo Script Generator</h1>
+  <div class="badge">AI-Powered</div>
+</header>
+
+<main>
+
+  <!-- Form -->
+  <div class="card">
+    <div class="card-title">
+      <span class="icon">&#127909;</span>
+      Generate Demo Script
+    </div>
+
+    <form id="generateForm">
+      <div class="form-fields">
+
+        <!-- Video upload -->
+        <div>
+          <label>Demo Video <span style="color:var(--error)">*</span></label>
+          <div class="upload-area" id="uploadArea">
+            <input type="file" id="videoFile" name="video" accept=".mp4,.mov,.webm" required />
+            <div class="upload-icon">&#128249;</div>
+            <p><strong>Click to upload</strong> or drag &amp; drop</p>
+            <p>MP4, MOV, or WebM &mdash; up to 500 MB</p>
+            <div class="file-name" id="fileName"></div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label>Demo Description <span style="color:var(--error)">*</span></label>
+          <textarea name="description" id="description"
+            placeholder="e.g. Purchase Order Creation in SAP S/4HANA — creating a purchase order for materials and submitting for approval"
+            required></textarea>
+        </div>
+
+        <!-- Template -->
+        <div>
+          <label>Template <span style="color:var(--muted);font-weight:400;text-transform:none">(optional)</span></label>
+          <div class="templates-row">
+            <div>
+              <select name="template" id="templateSelect">
+                <option value="">&#8212; No template (generate from scratch) &#8212;</option>
+              </select>
+            </div>
+            <label class="btn-secondary" style="cursor:pointer;margin:0;text-transform:none;font-size:0.85rem;padding:0.55rem 1rem;border:1px solid var(--border);border-radius:8px;display:inline-flex;align-items:center;gap:0.4rem;background:white;font-weight:600;color:var(--text);">
+              &#128196; Upload
+              <input type="file" id="templateUpload" accept=".docx,.pdf,.doc" style="display:none" />
+            </label>
+          </div>
+          <div class="sync-status" id="syncStatus"></div>
+          <!-- Uploaded templates list -->
+          <div id="templateList" style="margin-top:0.6rem;display:flex;flex-wrap:wrap;gap:0.4rem;"></div>
+        </div>
+
+      </div>
+
+      <div class="submit-row" style="flex-direction:column;align-items:flex-end;gap:0.75rem;">
+        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;text-transform:none;font-size:0.875rem;font-weight:500;color:var(--text);letter-spacing:0;margin:0;">
+          <input type="checkbox" name="generateHtml" value="true" id="generateHtmlCheck" style="width:16px;height:16px;accent-color:var(--sap-blue);cursor:pointer;" />
+          Also generate HTML5 interactive page
+        </label>
+        <button type="submit" class="btn-primary" id="generateBtn">
+          &#9654;&#xFE0E; Generate Demo Script
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Progress -->
+  <div class="card progress-card" id="progressCard">
+    <div class="card-title"><span class="icon">&#9881;</span> Processing</div>
+    <div class="steps-indicator">
+      <div class="step-pill" data-step="1">1. Extract</div>
+      <div class="step-pill" data-step="2">2. Analyse</div>
+      <div class="step-pill" data-step="3">3. Frames</div>
+      <div class="step-pill" data-step="4">4. Annotate</div>
+      <div class="step-pill" data-step="5">5. Generate</div>
+    </div>
+    <div class="log-terminal" id="logTerminal"></div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+  </div>
+
+  <!-- Download -->
+  <div class="card download-card" id="downloadCard">
+    <div class="card-title"><span class="icon">&#9989;</span> Ready</div>
+    <div class="download-box" style="flex-wrap:wrap;gap:0.75rem;">
+      <div class="dl-icon">&#128196;</div>
+      <div class="dl-info">
+        <strong>Demo script generated successfully!</strong>
+        <span id="outputFileName"></span>
+      </div>
+      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
+        <a id="downloadLink" href="#" class="btn-download">&#11015; Download .docx</a>
+        <a id="downloadHtmlLink" href="#" class="btn-download" style="display:none;background:#003366;">&#11015; Download .html</a>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // Drag & drop
+  const uploadArea = document.getElementById('uploadArea');
+  const videoFile  = document.getElementById('videoFile');
+  const fileName   = document.getElementById('fileName');
+
+  uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
+  uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+  uploadArea.addEventListener('drop', e => {
+    e.preventDefault(); uploadArea.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) { videoFile.files = e.dataTransfer.files; showFile(e.dataTransfer.files[0].name); }
+  });
+  videoFile.addEventListener('change', () => { if (videoFile.files[0]) showFile(videoFile.files[0].name); });
+  function showFile(n) { fileName.textContent = '📎 ' + n; }
+
+  // Templates
+  async function loadTemplates() {
+    try {
+      const { templates } = await fetch('/api/templates').then(r => r.json());
+      const sel = document.getElementById('templateSelect');
+      while (sel.options.length > 1) sel.remove(1);
+      templates.forEach(t => { const o = document.createElement('option'); o.value = o.textContent = t; sel.appendChild(o); });
+      renderTemplateList(templates);
+    } catch {}
+  }
+  loadTemplates();
+
+  function renderTemplateList(templates) {
+    const list = document.getElementById('templateList');
+    list.innerHTML = '';
+    templates.forEach(t => {
+      const chip = document.createElement('div');
+      chip.style.cssText = 'display:inline-flex;align-items:center;gap:0.3rem;background:#F0F7FF;border:1px solid #BFD7FF;border-radius:6px;padding:3px 8px;font-size:0.78rem;color:var(--text)';
+      chip.innerHTML = `<span>📄 ${t}</span><button onclick="deleteTemplate('${t}')" style="background:none;border:none;cursor:pointer;color:#999;font-size:0.85rem;padding:0;line-height:1" title="Remove">✕</button>`;
+      list.appendChild(chip);
+    });
+  }
+
+  async function deleteTemplate(filename) {
+    await fetch(`/api/templates/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+    loadTemplates();
+  }
+
+  document.getElementById('templateUpload').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const status = document.getElementById('syncStatus');
+    status.textContent = `Uploading ${file.name}…`; status.className = 'sync-status';
+    const fd = new FormData(); fd.append('template', file);
+    try {
+      const data = await fetch('/api/upload-template', { method: 'POST', body: fd }).then(r => r.json());
+      if (data.success) {
+        status.textContent = `✓ ${data.filename} uploaded`; status.className = 'sync-status ok';
+        loadTemplates();
+      } else {
+        status.textContent = data.error || 'Upload failed'; status.className = 'sync-status err';
+      }
+    } catch {
+      status.textContent = 'Upload error.'; status.className = 'sync-status err';
+    }
+    e.target.value = '';
+  });
+
+  // Step detection from log messages
+  const STEPS = {
+    1: ['extract', 'frame', 'ffmpeg'],
+    2: ['analys', 'ai', 'batch'],
+    3: ['mapping', 'frame mapping', 'screenshot'],
+    4: ['annotating', 'annotation'],
+    5: ['generating', 'document', 'docx']
+  };
+  function detectStep(msg) {
+    const l = msg.toLowerCase();
+    for (const [s, kw] of Object.entries(STEPS)) if (kw.some(k => l.includes(k))) return +s;
+    return null;
+  }
+
+  // Form submit
+  document.getElementById('generateForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true; btn.textContent = 'Starting…';
+
+    document.getElementById('progressCard').classList.add('visible');
+    document.getElementById('downloadCard').classList.remove('visible');
+    document.getElementById('logTerminal').innerHTML = '';
+    document.getElementById('progressBar').style.width = '5%';
+
+    try {
+      const res = await fetch('/api/generate', { method: 'POST', body: new FormData(e.target) });
+      if (!res.ok) {
+        const err = await res.json();
+        appendLog('Error: ' + (err.error || 'Server error'), 'error');
+        btn.disabled = false; btn.textContent = '▶ Generate Demo Script';
+        return;
+      }
+      const { jobId } = await res.json();
+      appendLog('Job started: ' + jobId.slice(0, 8) + '…');
+
+      const es = new EventSource('/api/status/' + jobId);
+      let currentStep = 0;
+
+      es.onmessage = ev => {
+        const data = JSON.parse(ev.data);
+
+        if (data.type === 'done' && data.outputFile) {
+          appendLog(data.message || '✅ Done!', 'done');
+          markAllDone();
+          document.getElementById('progressBar').style.width = '100%';
+          const fname = data.outputFile.split('/').pop().split('\\').pop();
+          document.getElementById('outputFileName').textContent = fname;
+          document.getElementById('downloadLink').href = '/api/download/' + fname;
+          if (data.htmlFile) {
+            const hname = data.htmlFile.split('/').pop().split('\\').pop();
+            const hlEl = document.getElementById('downloadHtmlLink');
+            hlEl.href = '/api/download/' + hname;
+            hlEl.style.display = 'inline-flex';
+          }
+          document.getElementById('downloadCard').classList.add('visible');
+          btn.disabled = false; btn.textContent = '▶ Generate Demo Script';
+          es.close(); return;
+        }
+        if (data.type === 'error') {
+          appendLog('Pipeline error — check log above.', 'error');
+          btn.disabled = false; btn.textContent = '▶ Generate Demo Script';
+          es.close(); return;
+        }
+        if (data.message) {
+          appendLog(data.message, data.type || 'info');
+          const s = detectStep(data.message);
+          if (s && s > currentStep) {
+            currentStep = s;
+            markStep(s);
+            document.getElementById('progressBar').style.width = (10 + s / 5 * 85) + '%';
+          }
+        }
+      };
+      es.onerror = () => { appendLog('Connection lost.', 'warn'); es.close(); btn.disabled = false; btn.textContent = '▶ Generate Demo Script'; };
+
+    } catch (err) {
+      appendLog('Error: ' + err.message, 'error');
+      btn.disabled = false; btn.textContent = '▶ Generate Demo Script';
+    }
+  });
+
+  function appendLog(msg, type = 'info') {
+    const t = document.getElementById('logTerminal');
+    const d = document.createElement('div');
+    d.className = 'log-line ' + type;
+    d.textContent = '[' + new Date().toLocaleTimeString('en-GB', { hour12: false }) + '] ' + msg;
+    t.appendChild(d); t.scrollTop = t.scrollHeight;
+  }
+  function markStep(n) {
+    document.querySelectorAll('.step-pill').forEach(el => {
+      const s = +el.dataset.step;
+      el.className = 'step-pill' + (s < n ? ' done-step' : s === n ? ' active' : '');
+    });
+  }
+  function markAllDone() {
+    document.querySelectorAll('.step-pill').forEach(el => el.className = 'step-pill done-step');
+  }
+</script>
+</body>
+</html>

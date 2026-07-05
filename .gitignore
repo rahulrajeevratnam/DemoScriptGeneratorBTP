@@ -1,0 +1,7 @@
+node_modules/
+uploads/
+frames/
+.env
+output/*.docx
+screenshots/
+annotated/
