@@ -1,0 +1,51 @@
+_schema-version: '3.3'
+ID: demoscriptgenerator
+version: 1.0.0
+description: SAP Demo Script Generator — generates SAP demo scripts (docx/HTML) from recorded demo videos using SAP AI Core Generative AI Hub.
+provider: SAP
+
+parameters:
+  enable-parallel-deployments: true
+
+modules:
+  - name: demoscriptgenerator-srv
+    type: nodejs
+    path: .
+    parameters:
+      memory: 1024M
+      disk-quota: 2048M
+      instances: 1
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm-ci
+      ignore:
+        - .git/
+        - node_modules/
+        - mta_archives/
+        - '*.mtar'
+    properties:
+      AICORE_ORCHESTRATION_MODEL: ${AICORE_ORCHESTRATION_MODEL}
+      AICORE_MAX_TOKENS: ${AICORE_MAX_TOKENS}
+    requires:
+      - name: demoscriptgenerator-aicore
+      - name: demoscriptgenerator-objectstore
+
+resources:
+  # SAP AI Core — Generative AI Hub, used to call Claude via the orchestration
+  # service. Credentials land in VCAP_SERVICES.aicore[0].credentials at runtime.
+  - name: demoscriptgenerator-aicore
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: aicore
+      service-plan: extended
+      service-name: demoscriptgenerator-aicore
+
+  # SAP Object Store (S3-compatible) — used for uploaded templates and
+  # generated output (docx/HTML). Credentials land in
+  # VCAP_SERVICES.objectstore[0].credentials at runtime.
+  - name: demoscriptgenerator-objectstore
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: objectstore
+      service-plan: s3-internet-access
+      service-name: demoscriptgenerator-objectstore

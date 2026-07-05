@@ -1,0 +1,23 @@
+# For plain `cf push` deployments (as an alternative to `mbt build` + `cf deploy`).
+#
+# The aicore/objectstore service instances are NOT created automatically by
+# this manifest — create them first, e.g.:
+#   cf create-service aicore extended demoscriptgenerator-aicore
+#   cf create-service objectstore s3-internet-access demoscriptgenerator-objectstore
+# then: cf push
+
+---
+applications:
+  - name: demoscriptgenerator
+    memory: 1024M
+    disk_quota: 2048M
+    instances: 1
+    buildpacks:
+      - nodejs_buildpack
+    command: npm start
+    env:
+      AICORE_ORCHESTRATION_MODEL: anthropic--claude-3.5-sonnet
+      AICORE_MAX_TOKENS: 8192
+    services:
+      - demoscriptgenerator-aicore
+      - demoscriptgenerator-objectstore

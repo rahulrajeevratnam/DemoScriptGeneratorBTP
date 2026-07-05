@@ -1,0 +1,11 @@
+# Non-service environment configuration for mta.yaml, substituted at deploy
+# time via: cf deploy mta_archives/demoscriptgenerator_1.0.0.mtar -f cf-vars.yml
+#
+# Everything that is a *credential* (AI Core, Object Store) comes from the
+# managed service bindings instead — see mta.yaml `resources:`.
+
+# Model deployed in your AI Core Generative AI Hub configuration/orchestration
+# deployment. Verify the exact name against your AI Core model catalog before
+# deploying — it varies by region/subscription.
+AICORE_ORCHESTRATION_MODEL: anthropic--claude-3.5-sonnet
+AICORE_MAX_TOKENS: '8192'

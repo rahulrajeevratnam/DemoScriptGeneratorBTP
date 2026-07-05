@@ -13,13 +13,11 @@ pipeline.run({
   jobId,
   videoPath: '/root/.claude/uploads/8f2dcf24-7a9f-5407-aa98-b2859f374893/1ed6a0de-Purchase_Order_Creation.mp4',
   description: 'Purchase Order Creation in SAP S/4HANA',
-  smartLinkUrl: 'https://placeholder.example.com',
-  iasUsername: 'placeholder',
-  iasPassword: 'placeholder',
   template: '',
+  generateHtmlOutput: false,
   jobs
-}).then(outputFile => {
-  console.log('\n✅ Done:', outputFile);
+}).then(({ docxFilename, htmlFilename }) => {
+  console.log('\n✅ Done:', docxFilename, htmlFilename || '');
 }).catch(err => {
   console.error('\n❌ Error:', err.message);
 });

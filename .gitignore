@@ -1,7 +1,5 @@
 node_modules/
-uploads/
-frames/
 .env
-output/*.docx
-screenshots/
-annotated/
+*.mtar
+mta_archives/
+.mta_build_tmp/
