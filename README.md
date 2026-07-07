@@ -106,10 +106,15 @@ If a deploy fails mid-staging and a retry keeps 404ing on a stale build/package,
 
 ### Troubleshooting: ffmpeg killed with `SIGKILL` on large/high-res videos
 
-This is the container's OOM killer, not an ffmpeg bug — decoding a 4K (or high-fps) source video needs real reference-frame buffer memory that no amount of output-side filtering can avoid. `lib/frameExtractor.js` forces single-threaded decode (`-threads 1`, since multi-threaded decode multiplies the reference-frame buffer pool — the single biggest avoidable cost) and downscales before scene-detection/output (screenshots get resized to 1024px for the AI and ~643px for the docx anyway, so decoding/encoding at native 4K was always wasted work). Those mitigations help, but if you still hit `SIGKILL` on very large source videos:
+This is the container's OOM killer, not an ffmpeg bug — decoding a 4K (or high-fps) source video needs real reference-frame buffer memory. Two different ffmpeg passes are involved, with different trade-offs:
 
-- raise `memory` in `manifest.yml`/`mta.yaml` as far as your org quota allows (video decode is the most memory-hungry part of this app by far)
-- as a practical workaround, ask presenters to record demos at 1080p rather than 4K — a 4K recording provides no benefit here since everything gets downscaled for the AI/output anyway, and 1080p decode needs a fraction of the memory
+- **Scene-change detection (pass 1) and its 1fps fallback** decode the *entire* video start to finish. `lib/frameExtractor.js` forces single-threaded decode (`-threads 1` — multi-threaded decode multiplies the reference-frame buffer pool, the single biggest avoidable cost) and downscales before scene-diffing, since detection accuracy doesn't need native resolution. This is the pass that actually drives the OOM risk on large videos.
+- **Final screenshot extraction (pass 2)** only ever seeks to and decodes a single frame at a time, so it's cheap regardless of source resolution — it's kept at **native resolution on purpose**, since these frames become the actual screenshots embedded in the docx/HTML. Screenshot clarity is decoupled from the AI's input: a separate, smaller (1024px-wide) copy is generated only for the Claude payload (`aiFrames` vs `screenshotFrames` in `lib/frameExtractor.js`) — that's a cost/latency optimization for the AI call, not a quality trade-off, and it does not affect final screenshot resolution.
+
+If you still hit `SIGKILL` on very large source videos:
+
+- raise `memory` in `manifest.yml`/`mta.yaml` as far as your org quota allows — this is the primary lever, since native-resolution screenshot clarity is a hard requirement here and there's no further downscaling to trade away without giving that up
+- if quota genuinely can't stretch far enough, recording at 1080p instead of 4K is the fallback — it materially reduces decode memory at some cost to final screenshot resolution (down from wherever your source video sits today)
 
 ## Local Development
 
