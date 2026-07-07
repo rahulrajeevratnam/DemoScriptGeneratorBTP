@@ -1,5 +1,9 @@
-# Non-service environment configuration for mta.yaml, substituted at deploy
-# time via: cf deploy mta_archives/demoscriptgenerator_1.0.0.mtar -f cf-vars.yml
+# Non-service environment configuration for mta.yaml. OPTIONAL — mta.yaml
+# already bakes in defaults for these two values, so a plain
+# `cf deploy mta_archives/demoscriptgenerator_1.0.0.mtar` works without this
+# file. Pass this file only if you want to override a default, e.g. to pick
+# a different Claude model:
+#   cf deploy mta_archives/demoscriptgenerator_1.0.0.mtar -f cf-vars.yml
 #
 # Everything that is a *credential* (AI Core, Object Store) comes from the
 # managed service bindings instead — see mta.yaml `resources:`.

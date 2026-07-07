@@ -55,6 +55,12 @@ This produces `mta_archives/demoscriptgenerator_1.0.0.mtar`.
 
 ```bash
 cf login   # target the right org/space
+cf deploy mta_archives/demoscriptgenerator_1.0.0.mtar
+```
+
+`mta.yaml` bakes in defaults for `AICORE_ORCHESTRATION_MODEL`/`AICORE_MAX_TOKENS`, so `cf-vars.yml` is optional — only pass it if you want to override one of them, e.g. to pick a different Claude model:
+
+```bash
 cf deploy mta_archives/demoscriptgenerator_1.0.0.mtar -f cf-vars.yml
 ```
 
@@ -64,7 +70,17 @@ cf deploy mta_archives/demoscriptgenerator_1.0.0.mtar -f cf-vars.yml
 - bind both to the app, so their credentials show up in `VCAP_SERVICES` at runtime
 - push and start the `demoscriptgenerator-srv` application
 
-Before your first real run, verify in the SAP AI Launchpad / AI Core configuration that a Claude model is deployed via the orchestration service in your subaccount, and that the model name in `cf-vars.yml` (`AICORE_ORCHESTRATION_MODEL`, default `anthropic--claude-3.5-sonnet`) matches what's actually available there.
+Before your first real run, an AI Core orchestration deployment for a Claude model has to exist in your subaccount (this is a one-time AI Core setup step, separate from `cf deploy` — see below). Verify the model name in `mta.yaml`/`cf-vars.yml` (`AICORE_ORCHESTRATION_MODEL`, default `anthropic--claude-3.5-sonnet`) matches what's actually deployed there.
+
+#### One-time AI Core setup (not automated by MTA)
+
+Creating the `aicore` service instance only gives the app a tenant + credentials — it does not deploy a model. Before Claude calls will succeed, once per subaccount:
+
+1. In SAP AI Launchpad (or via the AI Core REST API), enable the desired Claude model in **Generative AI Hub → Model Library** (third-party models may need a provider agreement accepted first)
+2. Create a **Configuration** for the `orchestration` scenario/executable in resource group `default`
+3. Create a **Deployment** from that configuration and wait for it to reach `RUNNING`
+
+This is an AI Core resource lifecycle, not a CF resource, so it can't be expressed in `mta.yaml` — it has to be done once via AI Launchpad or scripted separately with `@sap-ai-sdk/ai-api`.
 
 ### Alternative: plain `cf push`
 

@@ -6,6 +6,10 @@ provider: SAP
 
 parameters:
   enable-parallel-deployments: true
+  # Defaults for the placeholders referenced below — overridable at deploy
+  # time with `cf deploy ... -f cf-vars.yml`, but not required to.
+  AICORE_ORCHESTRATION_MODEL: anthropic--claude-3.5-sonnet
+  AICORE_MAX_TOKENS: '8192'
 
 modules:
   - name: demoscriptgenerator-srv
