@@ -96,13 +96,20 @@ cf push
 
 ### Troubleshooting: `organization's memory limit exceeded`
 
-Trial and small subaccounts often have a total org memory quota well under 1GB across all running apps. `manifest.yml`/`mta.yaml` default to `memory: 512M` for that reason. If staging still fails with this error:
+Trial and small subaccounts often have a total org memory quota well under what a single app can request. `manifest.yml`/`mta.yaml` default to `memory: 1024M`. If staging fails with this error:
 
 - check your quota and what's already using it: `cf org <your-org>` and `cf apps`
 - free up quota by stopping/deleting unused apps, or ask your BTP admin to raise the org's memory quota
-- if you have room to spare, `memory`/`disk-quota` in `manifest.yml`/`mta.yaml` can be raised back up — video/image processing (ffmpeg, sharp) benefits from more headroom on larger uploads
+- if quota genuinely won't stretch past ~512M, you can lower `memory`/`disk-quota` back down — but see the next section, since 512M is tight for real video processing
 
 If a deploy fails mid-staging and a retry keeps 404ing on a stale build/package, delete the app and redeploy clean: `cf delete demoscriptgenerator-srv -r` (plain `cf push`) or re-run `cf deploy` (MTA handles this itself in most cases).
+
+### Troubleshooting: ffmpeg killed with `SIGKILL` on large/high-res videos
+
+This is the container's OOM killer, not an ffmpeg bug — decoding a 4K (or high-fps) source video needs real reference-frame buffer memory that no amount of output-side filtering can avoid. `lib/frameExtractor.js` forces single-threaded decode (`-threads 1`, since multi-threaded decode multiplies the reference-frame buffer pool — the single biggest avoidable cost) and downscales before scene-detection/output (screenshots get resized to 1024px for the AI and ~643px for the docx anyway, so decoding/encoding at native 4K was always wasted work). Those mitigations help, but if you still hit `SIGKILL` on very large source videos:
+
+- raise `memory` in `manifest.yml`/`mta.yaml` as far as your org quota allows (video decode is the most memory-hungry part of this app by far)
+- as a practical workaround, ask presenters to record demos at 1080p rather than 4K — a 4K recording provides no benefit here since everything gets downscaled for the AI/output anyway, and 1080p decode needs a fraction of the memory
 
 ## Local Development
 

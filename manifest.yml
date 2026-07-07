@@ -14,7 +14,7 @@
 ---
 applications:
   - name: demoscriptgenerator
-    memory: 512M
+    memory: 1024M
     disk_quota: 1024M
     instances: 1
     buildpacks:

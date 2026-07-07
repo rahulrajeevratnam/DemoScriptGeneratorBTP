@@ -16,7 +16,7 @@ modules:
     type: nodejs
     path: .
     parameters:
-      memory: 512M
+      memory: 1024M
       disk-quota: 1024M
       instances: 1
       buildpack: nodejs_buildpack
