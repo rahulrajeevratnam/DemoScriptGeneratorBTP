@@ -12,7 +12,7 @@ parameters:
   AICORE_MAX_TOKENS: '8192'
   # Experimental /api/generate-gemini pipeline — comparison only, does not
   # affect the Claude pipeline above.
-  AICORE_GEMINI_MODEL: gemini-2.5-flash
+  AICORE_GEMINI_MODEL: gemini-2.5-pro
   AICORE_GEMINI_MAX_TOKENS: '32768'
 
 modules:

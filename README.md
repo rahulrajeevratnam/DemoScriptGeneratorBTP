@@ -182,7 +182,7 @@ Note what's *not* here anymore: `uploads/`, `frames/`, `screenshots/`, `annotate
 `public/gemini.html` is a second, standalone UI page (linked from nowhere in the standard UI — reach it directly at `/gemini.html`) that runs an entirely separate pipeline for comparing output quality:
 
 - **Standard pipeline** (`/`, `/api/generate`): `lib/pipeline.js` — ffmpeg scene-detection extracts candidate frames, Claude (via AI Core orchestration) analyses the static frames in batches and picks the best frame per action.
-- **Gemini pipeline** (`/gemini.html`, `/api/generate-gemini`): `lib/pipelineGeminiVideo.js` — the whole video is sent directly to Gemini (`gemini-2.5-flash` by default, `AICORE_GEMINI_MODEL` env var) for native video understanding in one call, which returns a `timestamp` per action instead of a frame index; a single native-resolution frame is then grabbed at each timestamp via the same `extractFrameAtTimestamp` used by the standard pipeline.
+- **Gemini pipeline** (`/gemini.html`, `/api/generate-gemini`): `lib/pipelineGeminiVideo.js` — the whole video is sent directly to Gemini (`gemini-2.5-pro` by default, `AICORE_GEMINI_MODEL` env var) for native video understanding in one call, which returns a `timestamp` per action instead of a frame index; a single native-resolution frame is then grabbed at each timestamp via the same `extractFrameAtTimestamp` used by the standard pipeline.
 
 Both pipelines produce the same `.docx`/`.html` shape (via the same unmodified `annotator.js`/`docxGenerator.js`/`htmlGenerator.js`) and land in Object Store's `output/` prefix — Gemini's outputs are named `DemoScript_gemini_<timestamp>.docx`/`.html` to keep them distinguishable from the standard pipeline's `DemoScript_<timestamp>.docx`/`.html` when comparing.
 
