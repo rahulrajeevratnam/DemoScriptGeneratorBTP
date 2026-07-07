@@ -10,6 +10,10 @@ parameters:
   # time with `cf deploy ... -f cf-vars.yml`, but not required to.
   AICORE_ORCHESTRATION_MODEL: anthropic--claude-4.6-sonnet
   AICORE_MAX_TOKENS: '8192'
+  # Experimental /api/generate-gemini pipeline — comparison only, does not
+  # affect the Claude pipeline above.
+  AICORE_GEMINI_MODEL: gemini-2.5-flash
+  AICORE_GEMINI_MAX_TOKENS: '16384'
 
 modules:
   - name: demoscriptgenerator-srv
@@ -30,6 +34,8 @@ modules:
     properties:
       AICORE_ORCHESTRATION_MODEL: ${AICORE_ORCHESTRATION_MODEL}
       AICORE_MAX_TOKENS: ${AICORE_MAX_TOKENS}
+      AICORE_GEMINI_MODEL: ${AICORE_GEMINI_MODEL}
+      AICORE_GEMINI_MAX_TOKENS: ${AICORE_GEMINI_MAX_TOKENS}
     requires:
       - name: demoscriptgenerator-aicore
       - name: demoscriptgenerator-objectstore

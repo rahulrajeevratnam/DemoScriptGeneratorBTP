@@ -173,8 +173,20 @@ Note what's *not* here anymore: `uploads/`, `frames/`, `screenshots/`, `annotate
 | DELETE | `/api/templates/:filename` | Delete a template from Object Store |
 | POST | `/api/calibrate` | Run frame-extraction only, returns a zip of frames (no AI, no persistence) |
 | POST | `/api/generate` | Start the generation pipeline (multipart video upload) |
-| GET | `/api/status/:jobId` | SSE stream of live pipeline logs |
-| GET | `/api/download/:filename` | Stream a generated `.docx`/`.html` from Object Store |
+| POST | `/api/generate-gemini` | Experimental — same as above, but via the Gemini video-native pipeline (see below) |
+| GET | `/api/status/:jobId` | SSE stream of live pipeline logs (shared by both pipelines) |
+| GET | `/api/download/:filename` | Stream a generated `.docx`/`.html` from Object Store (shared by both pipelines) |
+
+## Experimental: Gemini video-native pipeline (for comparison)
+
+`public/gemini.html` is a second, standalone UI page (linked from nowhere in the standard UI — reach it directly at `/gemini.html`) that runs an entirely separate pipeline for comparing output quality:
+
+- **Standard pipeline** (`/`, `/api/generate`): `lib/pipeline.js` — ffmpeg scene-detection extracts candidate frames, Claude (via AI Core orchestration) analyses the static frames in batches and picks the best frame per action.
+- **Gemini pipeline** (`/gemini.html`, `/api/generate-gemini`): `lib/pipelineGeminiVideo.js` — the whole video is sent directly to Gemini (`gemini-2.5-flash` by default, `AICORE_GEMINI_MODEL` env var) for native video understanding in one call, which returns a `timestamp` per action instead of a frame index; a single native-resolution frame is then grabbed at each timestamp via the same `extractFrameAtTimestamp` used by the standard pipeline.
+
+Both pipelines produce the same `.docx`/`.html` shape (via the same unmodified `annotator.js`/`docxGenerator.js`/`htmlGenerator.js`) and land in Object Store's `output/` prefix — Gemini's outputs are named `DemoScript_gemini_<timestamp>.docx`/`.html` to keep them distinguishable from the standard pipeline's `DemoScript_<timestamp>.docx`/`.html` when comparing.
+
+The Gemini pipeline compresses the video before upload (downscaled/re-encoded, targeting under ~18MB to stay within Gemini's inline video size guidance) — this is a separate, lightweight transcode from the standard pipeline's frame-extraction step and doesn't affect it.
 
 ## Notes
 

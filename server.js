@@ -10,6 +10,7 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 
 const pipeline = require('./lib/pipeline');
+const pipelineGeminiVideo = require('./lib/pipelineGeminiVideo');
 const objectStore = require('./lib/objectStore');
 
 const app = express();
@@ -171,6 +172,46 @@ app.post('/api/generate', uploadVideo.single('video'), async (req, res) => {
       })
       .catch(err => {
         console.error('[server] Pipeline error:', err);
+        jobs[jobId].logs.push({ type: 'info', message: `❌ Pipeline failed: ${err.message}` });
+        jobs[jobId].status = 'error';
+      });
+  });
+
+  res.json({ jobId });
+});
+
+// --- API: Generate demo script via Gemini (video-native) — experimental
+// pipeline for comparison against /api/generate. Reuses the same jobs
+// object, /api/status/:jobId, and /api/download/:filename unchanged.
+app.post('/api/generate-gemini', uploadVideo.single('video'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No video file uploaded.' });
+  const { description, template, generateHtml } = req.body;
+  if (!description) return res.status(400).json({ error: 'Description is required.' });
+
+  const jobId = uuidv4();
+  const videoPath = writeTempFile(req.file.buffer, req.file.originalname);
+
+  let videoUploadKey = null;
+  try {
+    videoUploadKey = `uploads/${jobId}_${req.file.originalname}`;
+    await objectStore.putObject(videoUploadKey, req.file.buffer, req.file.mimetype);
+  } catch (err) {
+    console.error('[server] Failed to persist upload to Object Store:', err);
+    videoUploadKey = null;
+  }
+
+  jobs[jobId] = { status: 'running', logs: [], outputFile: null, htmlFile: null, startedAt: new Date() };
+
+  setImmediate(() => {
+    pipelineGeminiVideo.run({ jobId, videoPath, videoUploadKey, description, template, generateHtmlOutput: generateHtml === 'true', jobs })
+      .then(({ docxFilename, htmlFilename }) => {
+        jobs[jobId].status = 'done';
+        jobs[jobId].outputFile = docxFilename;
+        jobs[jobId].htmlFile = htmlFilename;
+        jobs[jobId].logs.push({ type: 'done', message: `Done: ${docxFilename}` });
+      })
+      .catch(err => {
+        console.error('[server] Gemini pipeline error:', err);
         jobs[jobId].logs.push({ type: 'info', message: `❌ Pipeline failed: ${err.message}` });
         jobs[jobId].status = 'error';
       });

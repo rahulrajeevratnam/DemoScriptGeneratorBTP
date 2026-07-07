@@ -23,6 +23,10 @@ applications:
     env:
       AICORE_ORCHESTRATION_MODEL: anthropic--claude-4.6-sonnet
       AICORE_MAX_TOKENS: 8192
+      # Experimental /api/generate-gemini pipeline — comparison only, does
+      # not affect the Claude pipeline above.
+      AICORE_GEMINI_MODEL: gemini-2.5-flash
+      AICORE_GEMINI_MAX_TOKENS: 16384
     services:
       - demoscriptgenerator-aicore
       - demoscriptgenerator-objectstore
