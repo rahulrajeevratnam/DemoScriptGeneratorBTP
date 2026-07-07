@@ -26,7 +26,7 @@ applications:
       # Experimental /api/generate-gemini pipeline — comparison only, does
       # not affect the Claude pipeline above.
       AICORE_GEMINI_MODEL: gemini-2.5-flash
-      AICORE_GEMINI_MAX_TOKENS: 16384
+      AICORE_GEMINI_MAX_TOKENS: 32768
     services:
       - demoscriptgenerator-aicore
       - demoscriptgenerator-objectstore
