@@ -66,7 +66,7 @@ cf deploy mta_archives/demoscriptgenerator_1.0.0.mtar -f cf-vars.yml
 
 `cf deploy` will automatically:
 - create a `demoscriptgenerator-aicore` service instance (`aicore`, plan `extended`)
-- create a `demoscriptgenerator-objectstore` service instance (`objectstore`, plan `s3-internet-access`)
+- create a `demoscriptgenerator-objectstore` service instance (`objectstore`, plan `s3-standard`)
 - bind both to the app, so their credentials show up in `VCAP_SERVICES` at runtime
 - push and start the `demoscriptgenerator-srv` application
 
@@ -88,7 +88,7 @@ If you'd rather manage services yourself instead of using MTA:
 
 ```bash
 cf create-service aicore extended demoscriptgenerator-aicore
-cf create-service objectstore s3-internet-access demoscriptgenerator-objectstore
+cf create-service objectstore s3-standard demoscriptgenerator-objectstore
 cf push
 ```
 

@@ -51,5 +51,5 @@ resources:
     type: org.cloudfoundry.managed-service
     parameters:
       service: objectstore
-      service-plan: s3-internet-access
+      service-plan: s3-standard
       service-name: demoscriptgenerator-objectstore

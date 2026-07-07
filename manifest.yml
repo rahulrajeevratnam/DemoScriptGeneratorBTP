@@ -3,8 +3,13 @@
 # The aicore/objectstore service instances are NOT created automatically by
 # this manifest — create them first, e.g.:
 #   cf create-service aicore extended demoscriptgenerator-aicore
-#   cf create-service objectstore s3-internet-access demoscriptgenerator-objectstore
+#   cf create-service objectstore s3-standard demoscriptgenerator-objectstore
 # then: cf push
+#
+# Check `cf marketplace -e objectstore` for the plans actually entitled in
+# your subaccount — they vary by hyperscaler/region. Use the S3-compatible
+# plan (credentials shaped as bucket/access_key_id/secret_access_key/host) —
+# this app's lib/objectStore.js talks to it via the AWS S3 SDK.
 
 ---
 applications:
