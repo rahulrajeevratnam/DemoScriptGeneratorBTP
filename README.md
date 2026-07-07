@@ -94,6 +94,16 @@ cf push
 
 (`manifest.yml` references both service instances by name.)
 
+### Troubleshooting: `organization's memory limit exceeded`
+
+Trial and small subaccounts often have a total org memory quota well under 1GB across all running apps. `manifest.yml`/`mta.yaml` default to `memory: 512M` for that reason. If staging still fails with this error:
+
+- check your quota and what's already using it: `cf org <your-org>` and `cf apps`
+- free up quota by stopping/deleting unused apps, or ask your BTP admin to raise the org's memory quota
+- if you have room to spare, `memory`/`disk-quota` in `manifest.yml`/`mta.yaml` can be raised back up — video/image processing (ffmpeg, sharp) benefits from more headroom on larger uploads
+
+If a deploy fails mid-staging and a retry keeps 404ing on a stale build/package, delete the app and redeploy clean: `cf delete demoscriptgenerator-srv -r` (plain `cf push`) or re-run `cf deploy` (MTA handles this itself in most cases).
+
 ## Local Development
 
 ```bash
