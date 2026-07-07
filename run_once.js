@@ -11,7 +11,7 @@ jobs[jobId] = { status: 'running', logs: [], outputFile: null };
 
 pipeline.run({
   jobId,
-  videoPath: '/root/.claude/uploads/8f2dcf24-7a9f-5407-aa98-b2859f374893/1ed6a0de-Purchase_Order_Creation.mp4',
+  videoPath: '/path/to/your/demo-video.mp4', // set this before running
   description: 'Purchase Order Creation in SAP S/4HANA',
   template: '',
   generateHtmlOutput: false,
