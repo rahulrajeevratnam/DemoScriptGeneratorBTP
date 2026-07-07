@@ -11,5 +11,5 @@
 # Model deployed in your AI Core Generative AI Hub configuration/orchestration
 # deployment. Verify the exact name against your AI Core model catalog before
 # deploying — it varies by region/subscription.
-AICORE_ORCHESTRATION_MODEL: anthropic--claude-3.5-sonnet
+AICORE_ORCHESTRATION_MODEL: anthropic--claude-4.6-sonnet
 AICORE_MAX_TOKENS: '8192'

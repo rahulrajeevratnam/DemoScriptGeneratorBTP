@@ -70,7 +70,7 @@ cf deploy mta_archives/demoscriptgenerator_1.0.0.mtar -f cf-vars.yml
 - bind both to the app, so their credentials show up in `VCAP_SERVICES` at runtime
 - push and start the `demoscriptgenerator-srv` application
 
-Before your first real run, an AI Core orchestration deployment for a Claude model has to exist in your subaccount (this is a one-time AI Core setup step, separate from `cf deploy` — see below). Verify the model name in `mta.yaml`/`cf-vars.yml` (`AICORE_ORCHESTRATION_MODEL`, default `anthropic--claude-3.5-sonnet`) matches what's actually deployed there.
+Before your first real run, an AI Core orchestration deployment for a Claude model has to exist in your subaccount (this is a one-time AI Core setup step, separate from `cf deploy` — see below). Verify the model name in `mta.yaml`/`cf-vars.yml` (`AICORE_ORCHESTRATION_MODEL`, default `anthropic--claude-4.6-sonnet`) matches what's actually deployed there.
 
 #### One-time AI Core setup (not automated by MTA)
 

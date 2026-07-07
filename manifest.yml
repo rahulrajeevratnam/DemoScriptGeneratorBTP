@@ -21,7 +21,7 @@ applications:
       - nodejs_buildpack
     command: npm start
     env:
-      AICORE_ORCHESTRATION_MODEL: anthropic--claude-3.5-sonnet
+      AICORE_ORCHESTRATION_MODEL: anthropic--claude-4.6-sonnet
       AICORE_MAX_TOKENS: 8192
     services:
       - demoscriptgenerator-aicore
